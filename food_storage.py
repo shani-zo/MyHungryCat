@@ -36,8 +36,7 @@ def upload(img_path):
         ServiceProviderException for any error"""
     # Create a format name to upload the new file with
     now = datetime.datetime.now()
-    uid_for_upload = '{}-{}-{} {}:{}:{} {}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second,
-                                                   uuid.uuid4())
+    uid_for_upload = '{}_{}_{} {}_{}_{}'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
     # Upload the file
     try:
@@ -51,13 +50,13 @@ def get_last_added_food() -> Tuple[str, datetime.datetime]:
     """Get the last object that was added to the bucket. Will require going over all the objects
     Raises
         ServiceProviderException for any error"""
-    get_last_modified = lambda obj: int(obj['LastModified'].strftime('%Y-%m-%d-%H-%M-%S'))
+    get_last_modified = lambda obj: int(obj['LastModified'].strftime('%Y%m%d%H%M%S'))
     try:
         objs = s3_client.list_objects_v2(Bucket=BUCKET_NAME)['Contents']
     except ClientError as e:
         logger.error(str(e))
         raise ServiceProviderException(str(e))
-    last_added = [obj for obj in sorted(objs, key=get_last_modified)][0]
+    last_added = [obj for obj in sorted(objs, key=get_last_modified)][-1]
     return last_added['Key'], last_added['LastModified']
 
 
@@ -74,9 +73,10 @@ def download(key) -> str:
     Raises
         ServiceProviderException for any error with the download or saving process
     """
-    save_path = os.path.join(DOWNLOAD_FOLDER, key)
+    save_path = os.path.join(DOWNLOAD_FOLDER, key+'.jpg')
     try:
-        s3.download_file(BUCKET_NAME, key, save_path)
+        with open(save_path, 'wb') as f:
+            s3_client.download_fileobj(BUCKET_NAME, key, f)
     except ClientError as e:
         logger.error(str(e))
         raise ServiceProviderException(str(e))
