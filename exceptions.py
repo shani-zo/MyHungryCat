@@ -5,3 +5,7 @@ class ServiceProviderException(Exception):
 
 class ServiceProviderDoesNotExistException(ServiceProviderException):
     pass
+
+
+class InvalidFood(Exception):
+    pass
