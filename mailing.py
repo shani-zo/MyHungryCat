@@ -82,6 +82,8 @@ class MailingService:
         Returns:
           Sent Message.
         """
+        if not self.service:
+            self.setup_mail_connection()
         try:
             message = (self.service.users().messages().send(userId=self.user_id, body=message).execute())
             print('Message Id: %s' % message['id'])
