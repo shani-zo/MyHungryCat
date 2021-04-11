@@ -76,5 +76,6 @@ class HealthMonitor:
 
 if __name__ == '__main__':
     health_checker = HealthMonitor(FEEDING_INTERVAL, HEALTH_CHECK_INTERVAL)
-    run_periodically(health_checker.check_for_new_food, 20)
-    run_periodically(health_checker.send_feeding_alerts_in_needed, HEALTH_CHECK_INTERVAL)
+    # Example code. Both functions run forever
+    # run_periodically(health_checker.check_for_new_food, 20)
+    # run_periodically(health_checker.send_feeding_alerts_in_needed, HEALTH_CHECK_INTERVAL)
