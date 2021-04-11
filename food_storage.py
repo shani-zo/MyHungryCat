@@ -1,6 +1,7 @@
 import datetime
 import logging
 import uuid
+import os
 
 import boto3
 from botocore.exceptions import ClientError
@@ -13,6 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 BUCKET_NAME = 'cat-food-bucket'
+DOWNLOAD_FOLDER = 'temp_image_cache'
+
+
+if not os.path.exists(DOWNLOAD_FOLDER):
+    os.mkdir(DOWNLOAD_FOLDER)
 
 
 class Food:
@@ -35,7 +41,7 @@ class CatFood(Food):
     @staticmethod
     def get_last_added_cat_food():
         last_added_food_key, last_added_food_modified_date = get_last_added_food()
-        s3.download_file(BUCKET_NAME, last_added_food_key, last_added_food_key)
+        s3.download_file(BUCKET_NAME, last_added_food_key, os.path.join(DOWNLOAD_FOLDER, last_added_food_key))
         return CatFood(last_added_food_key, last_added_food_modified_date)
 
 
