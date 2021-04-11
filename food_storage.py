@@ -9,10 +9,16 @@ import exceptions
 
 logger = logging.getLogger(__name__)
 
+
 BUCKET_NAME = 'cat-food-bucket'
 
-s3 = boto3.resource('s3')
-bucket = s3.Bucket(BUCKET_NAME)
+s3 = None
+try:
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(BUCKET_NAME)
+except ClientError as e:
+    logger.error(str(e))
+    raise exceptions.ServiceProviderException(str(e))
 
 
 def feed(img_path):
@@ -27,6 +33,7 @@ def feed(img_path):
         s3.upload_file(img_path, BUCKET_NAME, uid_for_upload)
     except ClientError as e:
         logger.error(str(e))
+        raise exceptions.ServiceProviderException(str(e))
 
 
 def get_last_added_food():
@@ -36,9 +43,9 @@ def get_last_added_food():
         objs = s3.list_objects_v2(Bucket=BUCKET_NAME)['Contents']
     except ClientError as e:
         logger.error(str(e))
-    else:
-        last_added = [obj['Key'] for obj in sorted(objs, key=get_last_modified)][0]
-        return last_added
+        raise exceptions.ServiceProviderException(str(e))
+    last_added = [obj['Key'] for obj in sorted(objs, key=get_last_modified)][0]
+    return last_added
 
 
 def get_food_by_datetime(date: datetime.datetime, search_by_hour: bool = True):
