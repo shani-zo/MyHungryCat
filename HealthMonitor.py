@@ -20,7 +20,7 @@ class HealthMonitor:
         self.alerts_email_subscriber = 'dy@gmail.com'
 
     @property
-    def last_feeding_time(self) -> datetime.datetime:  # TODO
+    def last_feeding_time(self) -> datetime.datetime:
         """Get the last time the cat has been fed"""
         return datetime.datetime.strptime(feeding_cache.get_feeding_data(), "%m/%d/%Y, %H:%M:%S")
 
@@ -41,7 +41,7 @@ class HealthMonitor:
         """Has the cat been fed in the recent feeding interval?"""
         return datetime.datetime.now() - self.last_feeding_time > self.feeding_interval
 
-    def check_for_new_food(self):  # TODO
+    def check_for_new_food(self):
         last_added_food = food_storage.CatFood.get_last_added_cat_food()
         new_feeding_timestamp = last_added_food.timestamp
         self.update_last_feeding_time(new_feeding_timestamp)
@@ -54,7 +54,8 @@ class HealthMonitor:
         self.mailing_service.send_message(self.alerts_email_subscriber, 'Back To Normal',
                                               'The cat has been fed again! Thanks!')
 
-    def send_feeding_alerts_in_needed(self):  # TODO add comments
+    def send_feeding_alerts_in_needed(self):
+        """Our cat doesn't die if not fed but the alert will remind once if the cat hasn't been fed recently"""
         if self.cat_has_been_fed:
             if self.warning_sent:
                 self.send_back_to_normal_email()
