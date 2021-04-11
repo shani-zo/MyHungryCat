@@ -1,19 +1,23 @@
 import datetime
-import time
+import logging
 
 import feeding_cache
 import food
 from tools import run_periodically
 from mailing import MailingService
-import food_storage
 
-FEEDING_INTERVAL = 15
-HEALTH_CHECK_INTERVAL = 15
+
+logger = logging.getLogger(__name__)
+
+
+FEEDING_INTERVAL = 10
+HEALTH_CHECK_INTERVAL = 10
 
 
 class HealthMonitor:
 
     def __init__(self, feeding_interval, health_check_interval):
+        print('ctor')
         self.warning_sent = False
         self.feeding_interval = feeding_interval
         self.health_check_interval = health_check_interval
@@ -40,9 +44,10 @@ class HealthMonitor:
     @property
     def cat_has_been_fed(self) -> bool:
         """Has the cat been fed in the recent feeding interval?"""
-        return datetime.datetime.now() - self.last_feeding_time > self.feeding_interval
+        return (datetime.datetime.now() - self.last_feeding_time).total_seconds() > self.feeding_interval * 60
 
     def check_for_new_food(self):
+        print('check for new food')
         last_added_food = food.CatFood.get_last_added_cat_food()
         new_feeding_timestamp = last_added_food.timestamp
         self.update_last_feeding_time(new_feeding_timestamp)
@@ -56,16 +61,20 @@ class HealthMonitor:
                                               'The cat has been fed again! Thanks!')
 
     def send_feeding_alerts_in_needed(self):
+        print('send_feeding_alerts_in_needed')
         """Our cat doesn't die if not fed but the alert will remind once if the cat hasn't been fed recently"""
         if self.cat_has_been_fed:
+            print('send_feeding_alerts_in_needed - cat has been fed')
+            logger.info("cat is well")
             if self.warning_sent:
                 self.send_back_to_normal_email()
         else:
+            print('send_feeding_alerts_in_needed - cat was NOTTTTTT fed')
             if not self.warning_sent:
                 self.send_warning_email()
 
 
 if __name__ == '__main__':
     health_checker = HealthMonitor(FEEDING_INTERVAL, HEALTH_CHECK_INTERVAL)
-    run_periodically(health_checker.check_for_new_food, 1)
+    run_periodically(health_checker.check_for_new_food, 20)
     run_periodically(health_checker.send_feeding_alerts_in_needed, HEALTH_CHECK_INTERVAL)
