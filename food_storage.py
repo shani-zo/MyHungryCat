@@ -41,17 +41,24 @@ def get_last_added_food():
         return last_added
 
 
-def get_food_by_datetime(date: datetime.datetime, search_by_hour: bool):
+def get_food_by_datetime(date: datetime.datetime, search_by_hour: bool = True):
     """
+    Gets the objects uploaded in the date given by the user.
 
     Args:
         date: The date to search by
+        search_by_hour: if True then the results will include only food images from the hour specified
 
     Returns:
-
+        list of all the files that matched the input upload date.
     """
+    # Create a name pattern for searching in the bucket
     search_object_name = '{}-{}-{} '.format(date.year, date.month, date.day) + str(date.hour) if search_by_hour else ''
-    input_date_results = bucket.objects.filter(search_object_name)
+    try:
+        input_date_results = bucket.objects.filter(search_object_name)
+    except ClientError as e:
+        logger.error(str(e))
+        raise exceptions.ServiceProviderException(str(e))
     files = [obj.key for obj in sorted(input_date_results, key=lambda x: x.last_modified)]
     return files
 
