@@ -33,7 +33,7 @@ def classify_image(image_content: bytes) -> list:
     response = client.label_detection(image=image)
     labels = response.label_annotations
 
-    return [label.description for label in labels]
+    return [label.description for label in labels if label.score > 0.5]
 
 
 authenticate()
