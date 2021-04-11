@@ -1,4 +1,5 @@
-import os
+import base64
+import io
 
 import imageClassification
 from exceptions import InvalidFood
@@ -15,12 +16,14 @@ class Food:
 
 
 class CatFood(Food):
-    ALLOWED_FOOD_TYPES = ['fish']
+    ALLOWED_FOOD_TYPES = ['Fish', 'Milk', 'Bread']
 
     def __init__(self, food, timestamp):
         super(CatFood, self).__init__(food, timestamp)
-        labels = imageClassification.classify_image(self.image)
-        if not set(labels).issubset(self.ALLOWED_FOOD_TYPES):
+        with io.open(self.image, 'rb') as image_file:
+            content = image_file.read()
+        labels = imageClassification.classify_image(content)
+        if not set(labels) & set(self.ALLOWED_FOOD_TYPES):
             raise InvalidFood("This food is not good for cats!")
 
     @staticmethod
