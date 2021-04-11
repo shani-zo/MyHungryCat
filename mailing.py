@@ -91,7 +91,7 @@ class MailingService:
         except errors.HttpError as error:
             print('An error occurred: %s' % error)
 
-    def send_new_message(self, to: str, subject: str, message_text: str):
+    def send_message(self, to: str, subject: str, message_text: str):
         """
         Toggle sending a message.
 

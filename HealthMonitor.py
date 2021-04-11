@@ -2,6 +2,7 @@ import datetime
 import time
 
 import feeding_cache
+import food
 from tools import run_periodically
 from mailing import MailingService
 import food_storage
@@ -42,7 +43,7 @@ class HealthMonitor:
         return datetime.datetime.now() - self.last_feeding_time > self.feeding_interval
 
     def check_for_new_food(self):
-        last_added_food = food_storage.CatFood.get_last_added_cat_food()
+        last_added_food = food.CatFood.get_last_added_cat_food()
         new_feeding_timestamp = last_added_food.timestamp
         self.update_last_feeding_time(new_feeding_timestamp)
 
