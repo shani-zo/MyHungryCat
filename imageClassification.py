@@ -15,8 +15,17 @@ def authenticate() -> None:
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = AUTHENTICATION_KEY_PATH
 
 
-def classify_image(image_content: bytes):
-    """Send image to classification engine and return resulted labels"""
+def classify_image(image_content: bytes) -> list:
+    """
+    Send image to classification engine and return resulted labels
+
+    Args:
+        image_content: Image to classify
+
+    Returns:
+        Labels identified in the image provided
+
+    """
     # Instantiates a client
     client = vision.ImageAnnotatorClient()
     image = vision.Image(content=image_content)
@@ -25,9 +34,7 @@ def classify_image(image_content: bytes):
     response = client.label_detection(image=image)
     labels = response.label_annotations
 
-    print('Labels:')
-    for label in labels:
-        print(label.description)
+    return [label.description for label in labels]
 
 
 authenticate()
