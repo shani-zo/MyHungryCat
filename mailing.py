@@ -1,14 +1,19 @@
+import logging
 import base64
 import os.path
 from email.mime.text import MIMEText
+
 from googleapiclient import errors
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google.auth.exceptions import MutualTLSChannelError
 
 from exceptions import ServiceProviderDoesNotExistException
 
+
+logger = logging.getLogger(__name__)
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -20,15 +25,15 @@ class MailingService:
         # User's email address. The special value "me" can be used to indicate the authenticated user.
         self.user_id = 'me'
 
-    def setup_mail_connection(self):
+    def setup_mail_connection(self, token_path: str = 'token.json'):
         """Authenticate to the basic service allowing to send emails programmatically via the service provider Gmail.
-        This code is copied from google quickstart guide"""
+        This code is copied from google quickstart guide with added exception handling"""
         creds = None
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists('token.json'):
-            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        if os.path.exists(token_path):
+            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
@@ -38,10 +43,14 @@ class MailingService:
                     'credentials.json', SCOPES)
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open('token.json', 'w') as token:
+            with open(token_path, 'w') as token:
                 token.write(creds.to_json())
 
-        self.service = build('gmail', 'v1', credentials=creds)
+        try:
+            self.service = build('gmail', 'v1', credentials=creds)
+        except MutualTLSChannelError as e:
+            logger.error("Could not connect to mail provider")
+            raise ServiceProviderDoesNotExistException()
 
     @staticmethod
     def _create_message(sender: str, to: str, subject: str, message_text: str) -> dict:
